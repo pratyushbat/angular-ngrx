@@ -17,6 +17,7 @@ import {
   selectGroceriesAll,
   selectGroceriesByType,
 } from 'src/app/selectors/grocery.selector';
+import { GroceryService } from 'src/app/services/grocery.service';
 
 @Component({
   selector: 'grocery',
@@ -50,7 +51,7 @@ export class GroceryComponent implements OnInit {
   groceries$: Observable<Grocery[]> = this.store.select(selectGroceriesAll);
   filteredGroceries$: Observable<Grocery[]>;
 
-  constructor(private store: Store<RootReducerState>,private http:HttpClient) {
+  constructor(private store: Store<RootReducerState>,private groceryService:GroceryService) {
     this.store.dispatch(initBucket());
   }
 
@@ -60,7 +61,7 @@ export class GroceryComponent implements OnInit {
   }
   getGroceriesData() {
     this.store.dispatch(requestGrocery());
-    this.http.get('http://localhost:5000/api/grocery/get').subscribe((res:any)=>{
+    this.groceryService.getAlGrocery().subscribe((res:any)=>{
          this.store.dispatch(successGrocery({payload: res}));
     },err=>console.log(err))
   }

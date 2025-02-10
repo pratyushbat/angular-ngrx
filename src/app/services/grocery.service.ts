@@ -2,8 +2,12 @@ import { HttpClient } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 
 @Injectable({ providedIn: 'root' })
-export class YGroceryService {
+export class GroceryService {
   constructor(private http: HttpClient) {
-    this.http.get('http://localhost:5000/api/grocery/get');
+    
+  }
+
+  getAlGrocery(){
+   return this.http.get('http://localhost:5000/api/grocery/get');
   }
 }

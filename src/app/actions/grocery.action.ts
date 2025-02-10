@@ -9,6 +9,8 @@ export const successGrocery = createAction(
     '[Grocery] Success API',  
     props<{payload:{"groceries":Grocery[]} }>()
 )
-
+export const faiiureGrocery = createAction(
+    '[Grocery] Failure API'
+)
 
 // createActionGroup()
