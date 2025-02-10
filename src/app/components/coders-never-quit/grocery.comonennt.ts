@@ -1,0 +1,86 @@
+import { HttpClient } from '@angular/common/http';
+import { Component, Input, OnInit } from '@angular/core';
+import { Store } from '@ngrx/store';
+import { Observable } from 'rxjs';
+import {
+  addToBucket,
+  initBucket,
+  removeFromBucket,
+  resetFromBucket,
+} from 'src/app/actions/bucket.action';
+import { requestGrocery, successGrocery } from 'src/app/actions/grocery.action';
+import { Grocery } from 'src/app/models/grocery';
+import { RootReducerState } from 'src/app/reducers';
+import { GroceryReducerState } from 'src/app/reducers/grocery.reducer';
+import {
+  selectGroceries,
+  selectGroceriesAll,
+  selectGroceriesByType,
+} from 'src/app/selectors/grocery.selector';
+
+@Component({
+  selector: 'grocery',
+  template: `
+    <div class="row">
+      <h1>GroceryComponent</h1>
+      <select class="type-select" (change)="onTypeChange($event)">
+        <option value="">Select type</option>
+        <option value="fruit">Fruit</option>
+        <option value="snacks">Snacks</option>
+      </select>
+      <div
+        *ngFor="
+          let groc of (filteredGroceries$ ? filteredGroceries$ : groceries$)
+            | async
+        "
+      >
+        <button (click)="onIncrement(groc)" mat-button color="accent">
+          Increment
+        </button>
+        {{ groc.name }}
+        <button (click)="onDecrement(groc)" mat-button color="accent">
+          Decrement
+        </button>
+      </div>
+    </div>
+  `,
+  styles: [``],
+})
+export class GroceryComponent implements OnInit {
+  groceries$: Observable<Grocery[]> = this.store.select(selectGroceriesAll);
+  filteredGroceries$: Observable<Grocery[]>;
+
+  constructor(private store: Store<RootReducerState>,private http:HttpClient) {
+    this.store.dispatch(initBucket());
+  }
+
+  ngOnInit(): void {
+    
+    this.getGroceriesData();
+  }
+  getGroceriesData() {
+    this.store.dispatch(requestGrocery());
+    this.http.get('http://localhost:5000/api/grocery/get').subscribe((res:any)=>{
+         this.store.dispatch(successGrocery({payload: res}));
+    },err=>console.log(err))
+  }
+
+  onTypeChange(ev: Event) {
+    const selectedType = (ev.target as HTMLSelectElement).value;
+    if (selectedType)
+      this.filteredGroceries$ = this.store.select(
+        selectGroceriesByType(selectedType)
+      );
+    else this.filteredGroceries$ = null;
+    this.store.dispatch(resetFromBucket());
+  }
+  onIncrement(item: Grocery) {
+    const payload = { id: item.id, name: item.name, quantity: 1 };
+    //  this.store.dispatch({type:'update-grocery',payload:payload})
+    this.store.dispatch(addToBucket({ payload: payload }));
+  }
+  onDecrement(item: Grocery) {
+    const payload = { id: item.id };
+    this.store.dispatch(removeFromBucket({ payload: payload }));
+  }
+}
